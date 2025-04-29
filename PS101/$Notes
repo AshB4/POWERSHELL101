@@ -1,0 +1,728 @@
+<!-- @format -->
+
+# PowerShell 101
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Basic Commands](#basic-commands)
+3. [Useful Commands and Concepts](#useful-commands-and-concepts)
+4. [Working with Services](#working-with-services)
+5. [Variables](#variables)
+6. [Pipelines](#pipelines)
+7. [Foreach-Object](#foreach-object)
+8. [Real World Example](#real-world-example)
+9. [Conditional Statements](#conditional-statements)
+10. [Working with Dates](#working-with-dates)
+11. [String Interpolation](#string-interpolation)
+12. [File Operations](#file-operations)
+13. [Modules](#modules)
+14. [Comparison Operators](#comparison-operators)
+15. [Performance Note](#performance-note)
+16. [Navigation](#navigation)
+17. [Finding Documentation](#finding-documentation)
+18. [Additional Notes](#additional-notes)
+19. [Remote Server Administration](#remote-server-administration)
+    - [PowerShell Remoting](#powershell-remoting)
+    - [Environment Variables](#environment-variables)
+    - [Registry Management](#registry-management)
+    - [Disk Management](#disk-management)
+20. [Active Directory User Management](#active-directory-user-management)
+    - [Importing Users from CSV](#importing-users-from-csv)
+    - [Updating User Attributes](#updating-user-attributes)
+    - [Administration Tools](#administration-tools)
+    - [Additional PowerShell Commands](#additional-powershell-commands)
+
+## Overview
+
+- **GitHub Repository**: [PowerShell Scripts](https://github.com/psjamesp/sqlsatbr2024/101-powershell)
+- **PowerShell Version**: 7.4.4 is the latest version.
+- **Syntax**: Verb-Noun format (e.g., `Get-ChildItem`).
+
+## Basic Commands
+
+- **Listing Files**:
+  ```powershell
+  Get-ChildItem
+  # Aliases:
+  # ls
+  # dir
+  ```
+
+## Useful Commands and Concepts
+
+- **Verbs in PowerShell**:
+
+  ```powershell
+  Get-Verb | Sort-Object Verb
+  ```
+
+- **Command Count**:
+
+  ```powershell
+  Get-Command | Measure-Object
+  # Result: 1724 commands
+  ```
+
+- **Using Help**:
+
+  ```powershell
+  Get-Help -Name Get-Command -Online
+  ```
+
+- **Full Parameter Names**:
+
+  ```powershell
+  Get-Help -Name Get-Command
+  ```
+
+- **Wildcard Search**:
+
+  ```powershell
+  Get-Help -Name *service*
+  Get-Command *service*
+  ```
+
+- **Members of a Command**:
+  ```powershell
+  Get-Service -Name Spooler | Get-Member
+  ```
+
+## Working with Services
+
+- **Get Service**:
+
+  ```powershell
+  Get-Service -Name Spooler
+  ```
+
+- **Stop Service**:
+
+  ```powershell
+  Get-Service -Name Spooler | Stop-Service
+  ```
+
+- **Using Variables**:
+  ```powershell
+  $Service = Get-Service -Name Spooler
+  ```
+
+## Variables
+
+- **Declaration and Usage**:
+
+  ```powershell
+  $dime = 10  # Integer
+  $dime = "ten"  # String
+  $dime = "10"  # String
+  ```
+
+- **Operations**:
+  ```powershell
+  5 + 5          # Result: 10
+  5 + "five"     # Error: Cannot add string and integer
+  "10" + 1       # Result: 101
+  1 + "10"       # Result: 11
+  ```
+
+## Pipelines
+
+- **Basic Pipeline Usage**:
+
+  ```powershell
+  Get-ChildItem | Sort-Object | Format-Table
+  ```
+
+- **Creating Items**:
+
+  ```powershell
+  New-Item -Path C:\Scripts\SqlSat-2024 -Name files -ItemType Directory
+  ```
+
+- **Output Examples**:
+  ```powershell
+  1..10 | Write-Output
+  Write-Host "hi" -ForegroundColor green
+  ```
+
+## Foreach-Object
+
+- **Usage**:
+
+  ```powershell
+  1..10 | ForEach-Object { Write-Output $_ }
+  ```
+
+- **Alternative**:
+  ```powershell
+  $files = Get-ChildItem -Path C:\path\to\your\file | Select-Object Name
+  ForEach ($f in $files) { Write-Output $f.Name }
+  ```
+
+## Real World Example
+
+- **Stopping Services**:
+  ```powershell
+  $services = Get-Service Spooler, BITS
+  foreach ($s in $services) {
+      Stop-Service $s.Name
+  }
+  ```
+
+## Conditional Statements
+
+- **If Condition**:
+  ```powershell
+  if ($service.Status -eq "Running") {
+      Stop-Service $service.Name
+  }
+  ```
+
+## Working with Dates
+
+- **Get Date**:
+
+  ```powershell
+  Get-Date
+  ```
+
+- **Format Date**:
+
+  ```powershell
+  Get-Date -Format "MM-dd-yyyy hh:mm"
+  ```
+
+- **Date Arithmetic**:
+  ```powershell
+  (Get-Date).AddDays(4)
+  ```
+
+## String Interpolation
+
+- **Using Variables in Strings**:
+  ```powershell
+  $dog = "Angel"
+  "My dog's name is $dog"   # Output: My dog's name is Angel
+  'My dog's name is $dog'   # Output: My dog's name is $dog
+  ```
+
+## File Operations
+
+- **Creating Multiple Files**:
+
+  ```powershell
+  $files = 20..100
+  foreach ($f in $files) {
+      New-Item -Path .\files\$f.md
+  }
+  ```
+
+- **Deleting Files**:
+
+  ```powershell
+  $folder = "C:\Users\ash\Desktop\POWERSHELL101\PS101\mod.ps1"
+  Get-ChildItem -Path $folder -Recurse | Remove-Item
+  # Will delete the file you specify
+  ```
+
+- **Deleting Files with Conditions**:
+  ```powershell
+  $folder = "C:\Users\ash\Desktop\POWERSHELL101\PS101\mod.ps1"
+  Get-ChildItem -Path $folder -Recurse | Where-Object Name -NE "_yourFilesName.txt" | Remove-Item
+  ```
+
+## Modules
+
+- **Modules in PowerShell**:
+  - Similar to `def` in Python for defining reusable code.
+
+## Comparison Operators
+
+- **Equality and Inequality**:
+
+  ```powershell
+  -eq  # is equal to
+  -ne  # is not equal to
+  -gt  # is greater than
+  -lt  # is less than
+  -le  # is less than or equal to
+  -ge  # is greater than or equal to
+  ```
+
+- **Logical Operators**:
+
+  ```powershell
+  -and
+  -or
+  -not
+  ```
+
+- **Wildcard and Pattern Matching**:
+  ```powershell
+  -like
+  -notlike
+  -match
+  ```
+
+## Performance Note
+
+- These operators can be slow because they process each file one by one.
+
+## Navigation
+
+- **Change Directory**:
+  ```powershell
+  Set-Location -Path C:\path\to\directory
+  # Alias: cd
+  ```
+
+## Finding Documentation
+
+- **In Terminal**:
+
+  ```powershell
+  Get-Help -Name Get-Command -Online
+  ```
+
+- **Online**:
+  - Visit the [PowerShell Documentation](https://docs.microsoft.com/en-us/powershell/).
+
+## Additional Notes
+
+- PowerShell is versatile and allows for complex scripting and automation.
+- Always use meaningful names for variables and scripts to maintain readability and understandability.
+- Use PowerShell help and documentation extensively to explore and learn new commands and features.
+
+# Remote Server Administration
+
+## PowerShell Remoting
+
+### One-to-One Remoting
+
+- **Enter a Remote Session**:
+
+  ```powershell
+  Enter-PSSession -ComputerName Srv01 -Credential 714\bob -ConfigurationName Default
+  # Enter your password
+  # You will know you are in a remote session because you will see something like:
+  [srv01]: PS C:\Path\to\your\style>
+  ```
+
+- **Get Disk Information**:
+
+  ```powershell
+  Get-Disk
+  ```
+
+- **Exit Remote Session**:
+  ```powershell
+  Exit-PSSession
+  ```
+
+### One-to-Many Remoting
+
+- **Invoke Command on Multiple Computers**:
+
+  ```powershell
+  Invoke-Command -ComputerName srv01, srv02 -ScriptBlock { $env:COMPUTERNAME }
+  ```
+
+- **Invoke Command Using File Path**:
+  ```powershell
+  Invoke-Command -ComputerName srv01, srv02 -FilePath C:\your\file\path -Credential 714\bob
+  ```
+
+### SSH Remoting
+
+- **Using HostName for SSH**:
+
+  ```powershell
+  Enter-PSSession -HostName server.example.com -UserName user
+  ```
+
+- **Using ComputerName for WinRM**:
+
+  ```powershell
+
+
+  Enter-PSSession -ComputerName srv01 -Credential 714\bob
+  ```
+
+## Environment Variables
+
+- **Get PowerShell Drives**:
+
+  ```powershell
+  Get-PSDrive
+  ```
+
+- **Get Computer Name from Environment Variable**:
+
+  ```powershell
+  $env:COMPUTERNAME
+  ```
+
+- **Custom Environment Variables**:
+
+  - You can create custom environment variables and store them in the env drive.
+
+- **OS Detection**:
+
+  ```powershell
+  if ($IsMacOS -eq $true) { }
+  elseif ($IsLinux -eq $true) { }
+  else { }
+  ```
+
+- **Switch Statement Example**:
+
+  ```powershell
+  switch ($OS) {
+    'value1' { }
+    { $_ -in 'A', 'B', 'C' } { }
+    'value3' { }
+    Default { }
+  }
+  ```
+
+- **Blank Space in Strings**:
+  ```powershell
+  " "  # This string exists and makes a blank space
+  $null  # Doesn't exist and makes a blank space
+  ```
+
+## Registry Management
+
+- **Get Registry Item**:
+
+  ```powershell
+  Get-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
+  ```
+
+- **Set Registry Item Property**:
+
+  ```powershell
+  Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name PortNumber -Value 3399
+  ```
+
+- **Create Registry Item Property**:
+
+  ```powershell
+  New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "smileyface" -Value "yes"
+  ```
+
+- **Remove Registry Item Property**:
+  ```powershell
+  Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "smileyface"
+  ```
+
+## Disk Management
+
+- **Get Partition Information**:
+
+  ```powershell
+  Get-Partition
+  ```
+
+- **Change Drive**:
+  ```powershell
+  D:
+  ```
+
+## Active Directory User Management
+
+### Importing Users from CSV
+
+#### CSV Template
+
+**template.csv**:
+
+```csv
+GivenName,DisplayName,Surname,Password
+John,John Doe,Doe,Passw0rd123
+Jane,Jane Smith,Smith,SecurePass456
+```
+
+#### PowerShell Script for Creating Users
+
+**create_ad_users.ps1**:
+
+```powershell
+# Import the Active Directory module
+Import-Module ActiveDirectory
+
+# Path to the CSV file
+$csvPath = "C:\path\to\your\template.csv"
+
+# Import users from CSV
+$users = Import-Csv -Path $csvPath
+
+# Process each user
+foreach ($u in $users) {
+    # Create a hashtable for user data (splatting)
+    $userData = @{
+        GivenName = $u.GivenName
+        DisplayName = $u.DisplayName
+        Surname = $u.Surname
+        Name = "$($u.GivenName) $($u.Surname)"
+        UserPrincipalName = "$($u.GivenName).$($u.Surname)@yourdomain.com" # Adjust as necessary
+        SamAccountName = "$($u.GivenName).$($u.Surname)" # Adjust as necessary
+        Path = "OU=Users,DC=yourdomain,DC=com" # Adjust as necessary
+        AccountPassword = (ConvertTo-SecureString $u.Password -AsPlainText -Force)
+        Enabled = $true
+        PasswordNeverExpires = $true
+        ChangePasswordAtLogon = $false
+    }
+
+    # Create the new AD user
+    try {
+        New-ADUser @userData
+        Write-Output "User $($u.DisplayName) created successfully."
+    } catch {
+        Write-Output "Failed to create user $($u.DisplayName): $_"
+    }
+}
+```
+
+#### Explanation
+
+1. **Import the Active Directory Module**:
+
+   ```powershell
+   Import-Module ActiveDirectory
+   ```
+
+2. **Import Users from CSV**:
+
+   ```powershell
+   $csvPath = "C:\path\to\your\template.csv"
+   $users = Import-Csv -Path $csvPath
+   ```
+
+3. **Process Each User**:
+
+   ```powershell
+   foreach ($u in $users) {
+       # User creation logic goes here
+   }
+   ```
+
+4. **Splatting**:
+
+   ```powershell
+   $userData = @{
+       GivenName = $u.GivenName
+       DisplayName = $u.DisplayName
+       Surname = $u.Surname
+       Name = "$($u.GivenName) $($u.Surname)"
+       UserPrincipalName = "$($u.GivenName).$($u.Surname)@yourdomain.com"
+       SamAccountName = "$($u.GivenName).$($u.Surname)"
+       Path = "OU=Users,DC=yourdomain,DC=com"
+       AccountPassword = (ConvertTo-SecureString $u.Password -AsPlainText -Force)
+       Enabled = $true
+       PasswordNeverExpires = $true
+       ChangePasswordAtLogon = $false
+   }
+   ```
+
+5. **Create the New AD User**:
+
+   ```powershell
+   try {
+       New-ADUser @userData
+       Write-Output "User $($u.DisplayName) created successfully."
+   } catch {
+       Write-Output "Failed to create user $($u.DisplayName): $_"
+   }
+   ```
+
+6. **Handle Passwords Securely**:
+   ```powershell
+   AccountPassword = (ConvertTo-SecureString $u.Password -AsPlainText -Force)
+   ```
+
+### Updating User Attributes
+
+#### Example: Setting the Manager Attribute
+
+**set_manager.ps1**:
+
+```powershell
+# Import the Active Directory module
+Import-Module ActiveDirectory
+
+# Set the manager for a user
+Set-ADUser -Identity "username" -Manager "ManagerName"
+```
+
+#### Explanation
+
+1. **Import the Active Directory Module**:
+
+   ```powershell
+   Import-Module ActiveDirectory
+   ```
+
+2. **Set the Manager for a User**:
+   ```powershell
+   Set-ADUser -Identity "username" -Manager "ManagerName"
+   ```
+
+### Administration Tools
+
+#### Active Directory Users and Computers (ADUC)
+
+- **Access**: Use the Active Directory Users and Computers (ADUC) tool for graphical management of AD users, groups, and computers.
+- **Shortcut**: Run `dsa.msc` from the Run dialog or Command Prompt to open ADUC.
+
+### Additional PowerShell Commands
+
+#### Creating a New AD User with Direct Parameters
+
+```powershell
+New-ADUser -GivenName $u.GivenName -DisplayName $u.DisplayName -Name $u.GivenName -UserPrincipalName "$($u.GivenName).$($u.Surname)@yourdomain.com" -SamAccountName "$($u.GivenName).$($u.Surname)" -AccountPassword (ConvertTo-SecureString $u.Password -AsPlainText -Force) -Enabled $true -Path "OU=Users,DC=yourdomain,DC=com"
+```
+
+#### Useful AD Commands
+
+- **Get AD User**:
+
+  ```powershell
+  Get-ADUser -Filter * | Select-Object Name, SamAccountName
+  ```
+
+- **Get AD Group Members**:
+
+  ```powershell
+  Get-ADGroupMember -Identity "Domain Admins" | Select-Object Name, SamAccountName
+  ```
+
+- **Search for Locked Accounts**:
+
+  ```powershell
+  Search-ADAccount -LockedOut
+  ```
+
+- **Unlock AD Account**:
+
+  ```powershell
+  Unlock-ADAccount -Identity username
+  ```
+
+- **Get AD User with Additional Properties**:
+
+  ```powershell
+  Get-ADUser -Identity username -Properties *
+  ```
+
+- **Find Users with Password Last Set Within a Year**:
+  ```powershell
+  Get-ADUser -Filter * | Where-Object { $_.PasswordLastSet -gt ((Get-Date).AddDays(-365)) }
+  ```
+
+### Accessing Shared Folders and Permissions
+
+- **Get SMB Shares**:
+  ```powershell
+  Get-SmbShare
+  ```
+
+### Scheduled Tasks
+
+#### What is a Scheduled Task?
+
+Scheduled tasks are automated processes that run on a predefined schedule. They can be used to automate various tasks on a system.
+
+#### Open Task Scheduler
+
+Task Scheduler is primarily a Windows feature.
+
+- **Get Scheduled Tasks**:
+  ```powershell
+  Get-ScheduledTask
+  ```
+
+#### Create a Scheduled Task Example
+
+- **Create a Daily Task**:
+  ```powershell
+  $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "C:\path\to\your\script.ps1"
+  $trigger = New-ScheduledTaskTrigger -Daily -At 9AM
+  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+  Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "MyDailyTask" -Description "Daily Task" -Settings $settings
+  ```
+
+## Environment Variables and OS Detection
+
+- **Custom Environment Variables**:
+  ```powershell
+  $env
+  ```
+
+:MyCustomVar = "CustomValue"
+
+````
+
+- **OS Detection**:
+```powershell
+if ($IsMacOS -eq $true) { }
+elseif ($IsLinux -eq $true) { }
+else { }
+````
+
+- **Switch Statement Example**:
+
+  ```powershell
+  switch ($OS) {
+    'value1' { }
+    { $_ -in 'A', 'B', 'C' } { }
+    'value3' { }
+    Default { }
+  }
+  ```
+
+- **Blank Space in Strings**:
+  ```powershell
+  " "  # This string exists and makes a blank space
+  $null  # Doesn't exist and makes a blank space
+  ```
+
+## Registry Management
+
+- **Get Registry Item**:
+
+  ```powershell
+  Get-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
+  ```
+
+- **Set Registry Item Property**:
+
+  ```powershell
+  Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name PortNumber -Value 3399
+  ```
+
+- **Create Registry Item Property**:
+
+  ```powershell
+  New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "smileyface" -Value "yes"
+  ```
+
+- **Remove Registry Item Property**:
+  ```powershell
+  Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "smileyface"
+  ```
+
+## Disk Management
+
+- **Get Partition Information**:
+
+  ```powershell
+  Get-Partition
+  ```
+
+- **Change Drive**:
+  ```powershell
+  D:
+  ```
+
+This comprehensive guide provides detailed instructions and scripts for managing Active Directory users, updating user attributes, handling environment variables, managing registry settings, and automating tasks with PowerShell.
