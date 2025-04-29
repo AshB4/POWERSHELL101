@@ -1,0 +1,209 @@
+
+# PowerShell 101: Master Book  
+**Author:** AshB4  
+**Purpose:** This is a consolidated knowledge book based on PowerShell course notes, real scripts, and working automation practices.  
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Basic Commands](#basic-commands)
+3. [Useful Commands and Concepts](#useful-commands-and-concepts)
+4. [Working with Services](#working-with-services)
+5. [Variables](#variables)
+6. [Pipelines](#pipelines)
+7. [Foreach-Object](#foreach-object)
+8. [Real World Example](#real-world-example)
+9. [Conditional Statements](#conditional-statements)
+10. [Working with Dates](#working-with-dates)
+11. [String Interpolation](#string-interpolation)
+12. [File Operations](#file-operations)
+13. [Modules](#modules)
+14. [Comparison Operators](#comparison-operators)
+15. [Performance Note](#performance-note)
+16. [Navigation](#navigation)
+17. [Finding Documentation](#finding-documentation)
+18. [Additional Notes](#additional-notes)
+19. [Remote Server Administration](#remote-server-administration)
+20. [Active Directory User Management](#active-directory-user-management)
+21. [Environment Variables and OS Detection](#environment-variables-and-os-detection)
+22. [Registry Management](#registry-management)
+23. [Disk Management](#disk-management)
+24. [Module Function Example: Remove-TempStorage](#module-function-example-remove-tempstorage)
+25. [Fun Script: Rickroll Scheduler](#fun-script-rickroll-scheduler)
+
+---
+
+## Overview
+PowerShell is an object-oriented shell and scripting language developed by Microsoft.
+It allows users to automate tasks, manage systems, and perform administrative functions.
+
+## Basic Commands
+```powershell
+Get-ChildItem      # List files and folders
+cd ..              # Navigate directories
+Clear-Host         # Clear terminal
+```
+
+## Useful Commands and Concepts
+```powershell
+Get-Command | Measure-Object
+Get-Verb | Sort-Object Verb
+Get-Help Get-Process -Online
+```
+
+## Working with Services
+```powershell
+Get-Service -Name Spooler
+Stop-Service -Name Spooler
+```
+
+## Variables
+```powershell
+$dime = 10
+$dime = "ten"
+```
+
+## Pipelines
+```powershell
+Get-ChildItem | Sort-Object | Format-Table
+```
+
+## Foreach-Object
+```powershell
+1..10 | ForEach-Object { Write-Output $_ }
+```
+
+## Real World Example
+```powershell
+$services = Get-Service Spooler, BITS
+foreach ($s in $services) {
+    Stop-Service $s.Name
+}
+```
+
+## Conditional Statements
+```powershell
+if ($service.Status -eq "Running") {
+    Stop-Service $service.Name
+}
+```
+
+## Working with Dates
+```powershell
+Get-Date
+(Get-Date).AddDays(4)
+```
+
+## String Interpolation
+```powershell
+$dog = "Angel"
+"My dog's name is $dog"
+```
+
+## File Operations
+```powershell
+$files = 20..30
+foreach ($f in $files) {
+    New-Item -Path .\files\$f.md
+}
+```
+
+## Modules
+```powershell
+Import-Module .\RemoveTempStorage\RemoveTempStorage.psm1
+Remove-TempStorage -folder "C:\path\to\folder"
+```
+
+## Comparison Operators
+```powershell
+-eq  # equal
+-ne  # not equal
+-gt, -lt, -ge, -le
+-and, -or, -not
+-like, -match, -notlike
+```
+
+## Performance Note
+Beware of operations that run over each file individually — they can be slow.
+
+## Navigation
+```powershell
+Set-Location -Path "C:\MyFolder"
+```
+
+## Finding Documentation
+```powershell
+Get-Help Get-Command -Online
+```
+
+## Additional Notes
+Use clear variable names, modular scripts, and document everything.
+
+## Remote Server Administration
+```powershell
+Enter-PSSession -ComputerName Server01 -Credential domain\user
+Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Process }
+Exit-PSSession
+```
+
+## Active Directory User Management
+```powershell
+Import-Csv "C:\template.csv" | ForEach-Object {
+    New-ADUser -Name "$($_.GivenName) $($_.Surname)" ...
+}
+```
+
+## Environment Variables and OS Detection
+```powershell
+$env:COMPUTERNAME
+if ($IsMacOS) { "Mac Detected" } elseif ($IsLinux) { "Linux" }
+```
+
+## Registry Management
+```powershell
+Set-ItemProperty -Path "HKLM:\..." -Name "PortNumber" -Value 3399
+```
+
+## Disk Management
+```powershell
+Get-Partition
+D:
+```
+
+## Module Function Example: Remove-TempStorage
+```powershell
+function Remove-TempStorage {
+    param([string]$folder)
+    if (-not $folder) {
+        $folder = "C:\Users\ash\Desktop\POWERSHELL101\PS101"
+    }
+    Get-ChildItem -Path $folder -Recurse |
+    Where-Object { $_.Name -ne "_yourFilesName.txt" } |
+    Remove-Item -Force -Recurse
+}
+```
+
+## Fun Script: Rickroll Scheduler
+```powershell
+param(
+    [ValidateSet("create", "remove")]
+    [string]$action
+)
+
+function CreateRickrollTask {
+    $runTime = (Get-Date).Date.AddHours((Get-Random -Minimum 9 -Maximum 17)).AddMinutes((Get-Random -Maximum 59)).AddSeconds((Get-Random -Maximum 59))
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "C:\path\to\rickroll.ps1"
+    $trigger = New-ScheduledTaskTrigger -Once -At $runTime
+    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "Rickroll"
+}
+
+function Remove-RickrollTask {
+    Unregister-ScheduledTask -TaskName "Rickroll" -Confirm:$false
+}
+
+if ($action -eq "create") { CreateRickrollTask }
+elseif ($action -eq "remove") { Remove-RickrollTask }
+else { Write-Output "Use 'create' or 'remove'" }
+```
